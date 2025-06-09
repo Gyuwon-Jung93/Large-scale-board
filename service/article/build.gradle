@@ -5,4 +5,5 @@ dependencies {
     implementation project (':common:snowflake')
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.h2database:h2'
+    testImplementation 'org.hamcrest:hamcrest-all:1.3'
 }

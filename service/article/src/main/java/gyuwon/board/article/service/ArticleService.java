@@ -4,11 +4,14 @@ import gyuwon.board.article.entity.Article;
 import gyuwon.board.article.repository.ArticleRepository;
 import gyuwon.board.article.service.request.ArticleCreateRequest;
 import gyuwon.board.article.service.request.ArticleUpdateRequest;
+import gyuwon.board.article.service.response.ArticlePageResponse;
 import gyuwon.board.article.service.response.ArticleResponse;
 import kuke.board.common.snowflake.Snowflake;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +41,26 @@ public class ArticleService {
     public void delete(Long articleId){
         articleRepository.deleteById(articleId);
 
+    }
+    @Transactional
+
+    public ArticlePageResponse readAll(Long boardId, Long page, Long pageSize){
+        return ArticlePageResponse.of(
+                articleRepository.findAll(boardId, (page-1)*pageSize, pageSize).stream()
+                        .map(ArticleResponse::from)
+                        .toList(),
+                articleRepository.count(
+                        boardId,
+                        PageLimitCalculator.calculatedPageLimit(page,pageSize,10L)
+                )
+        );
+    }
+
+    public List<ArticleResponse> readAllInfiniteScroll(Long boardId, Long pageSize, Long lastArticleId){
+        List<Article> articles = lastArticleId == null ?
+                articleRepository.findAllInfiniteScroll(boardId, pageSize):
+                articleRepository.findAllInfiniteScroll(boardId, pageSize,lastArticleId);
+        return articles.stream().map(ArticleResponse::from).toList();
     }
 
 }

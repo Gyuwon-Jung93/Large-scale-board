@@ -1,12 +1,18 @@
 package gyuwon.board.article.api;
 import gyuwon.board.article.entity.Article;
+import gyuwon.board.article.service.request.ArticleCreateRequest;
+import gyuwon.board.article.service.response.ArticlePageResponse;
 import gyuwon.board.article.service.response.ArticleResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestClient;
+
+import java.util.List;
+
 @SpringBootTest
 public class ArticleApiTest {
     RestClient restClient = RestClient.create("http://localhost:9000");
@@ -18,20 +24,37 @@ public class ArticleApiTest {
         ));
         System.out.println("response = " + response);
     }
+    ArticleResponse create(ArticleCreateRequest request) {
+        return restClient.post()
+                .uri("/v1/articles")
+                .body(request)
+                .retrieve()
+                .body(ArticleResponse.class);
+    }
+
     @Test
-    void readTest(){
-        ArticleResponse response = read(188728616664698880L);
+    void readTest() {
+        ArticleResponse response = read(121530268440289280L);
         System.out.println("response = " + response);
     }
+
+    ArticleResponse read(Long articleId) {
+        return restClient.get()
+                .uri("/v1/articles/{articleId}", articleId)
+                .retrieve()
+                .body(ArticleResponse.class);
+    }
+
     @Test
-    void updateTest(){
-        update(188728616664698880L);
-        ArticleResponse response = read(188728616664698880L);
+    void updateTest() {
+        update(121530268440289280L);
+        ArticleResponse response = read(121530268440289280L);
         System.out.println("response = " + response);
     }
-    void update(Long articleId){
+
+    void update(Long articleId) {
         restClient.put()
-                .uri("/v1/articles/{articleId}",articleId)
+                .uri("/v1/articles/{articleId}", articleId)
                 .body(new ArticleUpdateRequest("hi 2", "my content 22"))
                 .retrieve();
     }
@@ -44,20 +67,40 @@ restClient.delete()
     }
 
 
-    ArticleResponse read(Long articleId){
-        return restClient.get()
-                .uri("/v1/articles/{articleId}",articleId)
-                .retrieve()
-                .body(ArticleResponse.class);
+    @Test
+    void readAllTest(){
+            ArticlePageResponse response = restClient.get().uri("/v1/articles?boardId=1&pageSize=30&page=50000")
+                    .retrieve()
+                    .body(ArticlePageResponse.class);
+        System.out.println("Response.getArticleCount = " + response.getArticleCount());
+        for (ArticleResponse article : response.getArticles()){
+            System.out.println("ArticleId = " + article.getArticleId());
+        }
     }
 
-    ArticleResponse create (ArticleCreateRequest request){
-        return restClient.post()
-                .uri("/v1/articles")
-                .body(request)
-                .retrieve()
-                .body(ArticleResponse.class);
 
+    @Test
+    void readAllInfiniteScrollTest(){
+        List <ArticleResponse> article1 = restClient.get()
+                .uri("/v1/articles/infinite-scroll?boardId=1&pageSize=5")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ArticleResponse>>() {
+                });
+        System.out.println("first page");
+        for(ArticleResponse articleResponse : article1){
+            System.out.println("ArticleResponse.getArticleId() = " + articleResponse.getArticleId());
+        }
+        Long lastArticleId = article1.getLast().getArticleId();
+        List <ArticleResponse> article2 = restClient.get()
+                .uri("/v1/articles/infinite-scroll?boardId=1&pageSize=5&lastArticleId=%s".formatted(lastArticleId))
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ArticleResponse>>() {
+                });
+
+        System.out.println("Second page");
+        for(ArticleResponse articleResponse : article2){
+            System.out.println("ArticleResponse.getArticleId() = " + articleResponse.getArticleId());
+        }
     }
     @Getter
     @AllArgsConstructor

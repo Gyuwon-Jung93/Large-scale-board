@@ -27,23 +27,27 @@ class CommentServiceTest {
 
     @Test
     @DisplayName("have a children comment, show delete")
-    void deleteShouldMarkDeletedChildren(){
+    void deleteShouldMarkDeletedIfHasChildren(){
+        // given
         Long articleId = 1L;
         Long commentId = 2L;
         Comment comment = createComment(articleId, commentId);
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
-        given(commentRepository.countBy(articleId,commentId, 2L)).willReturn(2L);
+        given(commentRepository.findById(commentId))
+                .willReturn(Optional.of(comment));
+        given(commentRepository.countBy(articleId, commentId, 2L)).willReturn(2L);
 
-        //when
+        // when
         commentService.delete(commentId);
-        //then
+
+        // then
         verify(comment).delete();
     }
 
 
     @Test
     @DisplayName("After Deleting children, not deleted parents , delete children")
-    void deleteShouldDeletedChildrenOnlyIfNotDeletedParents(){
+    void deleteShouldDeleteChildOnlyIfNotDeletedParent() {
+        // given
         Long articleId = 1L;
         Long commentId = 2L;
         Long parentCommentId = 1L;
@@ -54,15 +58,17 @@ class CommentServiceTest {
         Comment parentComment = mock(Comment.class);
         given(parentComment.getDeleted()).willReturn(false);
 
-
         given(commentRepository.findById(commentId))
                 .willReturn(Optional.of(comment));
         given(commentRepository.countBy(articleId, commentId, 2L)).willReturn(1L);
-        given(commentRepository.findById(parentCommentId)).willReturn(Optional.of(parentComment));
 
-        //when
+        given(commentRepository.findById(parentCommentId))
+                .willReturn(Optional.of(parentComment));
+
+        // when
         commentService.delete(commentId);
-        //then
+
+        // then
         verify(commentRepository).delete(comment);
         verify(commentRepository, never()).delete(parentComment);
     }

@@ -1,4 +1,4 @@
-package gyuwon.board.comment.service.api;
+package gyuwon.board.comment.api;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

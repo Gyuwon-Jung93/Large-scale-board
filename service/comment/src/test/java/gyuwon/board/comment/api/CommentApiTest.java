@@ -1,4 +1,4 @@
-package gyuwon.board.comment.service.api;
+package gyuwon.board.comment.api;
 
 import gyuwon.board.comment.service.request.CommentCreateRequest;
 import gyuwon.board.comment.service.response.CommentPageResponse;

@@ -22,6 +22,9 @@ public class ArticleApiTest {
         ArticleResponse response = create(new ArticleCreateRequest(
                 "hi", "my content", 1L, 1L
         ));
+// INSERT INTO article (article_id, title, content, board_id, writer_id, created_at, modified_at) VALUES ((1111, 'hi1', 'my content1', 1, 2, NOW(), NOW()),)
+        // INSERT INTO article (article_id, title, content, board_id, writer_id, created_at, modified_at) VALUES ((121530268440289280, 'hi', 'my content', 1, 2, NOW(), NOW()),)
+
         System.out.println("response = " + response);
     }
     ArticleResponse create(ArticleCreateRequest request) {
@@ -102,6 +105,33 @@ restClient.delete()
             System.out.println("ArticleResponse.getArticleId() = " + articleResponse.getArticleId());
         }
     }
+
+    @Test
+void countTest() {
+        ArticleResponse response  = create(new ArticleCreateRequest("hi", "my content", 1L, 2L
+        ));
+        Long count1 = restClient.get()
+                .uri("/v1/articles/board/{boardId}/count", 2L)
+                .retrieve()
+                .body(Long.class);
+        System.out.println("count1 = " + count1);
+
+
+        restClient.delete()
+                .uri("/v1/articles/{articleId}", response.getArticleId())
+                .retrieve();
+
+    Long count2 =  restClient.get()
+                .uri("/v1/articles/board/{boardId}/count", 2L)
+                .retrieve()
+                .body(Long.class);
+
+       System.out.println("count2 = " + count2);
+
+
+    }
+
+
     @Getter
     @AllArgsConstructor
     static class ArticleCreateRequest {
